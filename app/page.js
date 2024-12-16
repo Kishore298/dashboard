@@ -1,101 +1,109 @@
-import Image from "next/image";
+"use client";
 
-export default function Home() {
+import { useState } from "react";
+import Card from "../components/Card";
+import Charts from "../components/Charts";
+import Tabs from "../components/Tabs";
+import Dropdown from "../components/Dropdown";
+import SkeletonLoader from "../components/SkeletonLoader";
+import History from "../pages/dashboard/history"; // Add this component
+import { toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import {
+  mockUserGrowthData,
+  mockRevenueData,
+  mockEngagementData,
+} from "../utils/mockData";
+
+export default function Page() {
+  const [selectedTab, setSelectedTab] = useState("Daily");
+  const [selectedFilter, setSelectedFilter] = useState("User Growth");
+  const [isLoading, setIsLoading] = useState(false);
+  const [toastMessage, setToastMessage] = useState("");
+
+  // Mapping data based on the selected filter
+  const dataMap = {
+    "User Growth": mockUserGrowthData,
+    Revenue: mockRevenueData,
+    Engagement: mockEngagementData,
+  };
+
+  const data = dataMap[selectedFilter]?.[selectedTab.toLowerCase()];
+
+  const handleTabChange = (tab) => {
+    setIsLoading(true);
+    setTimeout(() => {
+      setSelectedTab(tab);
+      setIsLoading(false);
+      toast.success("Data refreshed successfully", { autoClose: 3000 });
+    }, 1000);
+  };
+
   return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              app/page.js
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+    <div className="p-6 bg-gray-100 min-h-screen">
+  <h1 className="text-3xl font-extrabold mb-6 text-gray-800">
+    Dashboard Analytics
+  </h1>
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
-        </div>
-      </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+  {/* Tabs and Dropdown Section */}
+  <div className="flex flex-col sm:flex-row sm:items-center sm:space-x-4 mb-4">
+    {/* Tabs Component */}
+    <Tabs
+      tabs={["Daily", "Weekly", "Monthly"]}
+      selectedTab={selectedTab}
+      onSelectTab={handleTabChange}
+    />
+
+    {/* Dropdown Component */}
+    <div className="mt-4 sm:mt-0">
+      <Dropdown
+        options={["User Growth", "Revenue", "Engagement"]}
+        selectedOption={selectedFilter}
+        onChange={setSelectedFilter}
+      />
     </div>
+  </div>
+
+  {/* Charts Section */}
+  <div className="mt-6">
+    {isLoading ? (
+      <SkeletonLoader />
+    ) : (
+      <Charts data={data} title={`${selectedFilter} - ${selectedTab}`} />
+    )}
+  </div>
+
+  {/* History Section */}
+  <div className="mt-8">
+    <h2 className="text-2xl font-bold mb-4">History</h2>
+    <History filter={selectedFilter} tab={selectedTab} />
+  </div>
+
+  {/* Summary Section */}
+  <div className="mt-8">
+    <h2 className="text-2xl font-bold mb-4">Summary</h2>
+    {/* Grid layout for different screen sizes */}
+    <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+      {data?.map((value, index) => (
+        <div key={index} className="p-4 bg-white rounded-lg shadow-md">
+          <h3 className="text-xl font-semibold">
+            {selectedTab} - Data {index + 1}
+          </h3>
+          <p>
+            <strong>User Growth:</strong> {value}
+          </p>
+          <p>
+            <strong className="text-green-600">Revenue:</strong> $
+            {mockRevenueData[selectedTab.toLowerCase()][index]}
+          </p>
+          <p>
+            <strong>Engagement:</strong>{" "}
+            {mockEngagementData[selectedTab.toLowerCase()][index]}%
+          </p>
+        </div>
+      ))}
+    </div>
+  </div>
+</div>
   );
 }
